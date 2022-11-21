@@ -1,43 +1,70 @@
 import React, {useEffect, useState} from 'react';
-import './App.css';
 import Form from "./components/Form/Form";
+import MessageCarts from "./components/MessageCarts/MessageCarts";
+import {Post} from "./type";
 
-const url = 'http://146.185.154.90:8000/messages';
+let baseUrl = 'http://146.185.154.90:8000/messages';
 
 function App() {
 
   const [value, setValue] = useState('');
 
-  const fetchData = async () => {
-    let allMessages;
-    const response = await fetch(url);
-    if (response.ok) {
-      allMessages = await response.json();
-    }
-    return allMessages;
-  };
+  const [messages, setMessages] = useState([{
+    message: '',
+    _id: '',
+    datetime: '',
+    author: '',
+  }]);
 
-  const [messages, setMessages] = useState(fetchData());
+  const goOn = async () => {
+    let lastDate = '';
+    let url = '';
+    const response = await fetch(baseUrl);
+    const theFirstPosts = await response.json();
+    url = baseUrl + '?datetime=' + theFirstPosts[theFirstPosts.length - 1].datetime;
+    setInterval(async () => {
+      const response = await fetch(url);
+      const posts: Post[] = await response.json();
+
+      if (posts.length > 0) {
+        lastDate = posts[posts.length - 1].datetime;
+        url = baseUrl + '?datetime=' + lastDate;
+        setMessages(prevState => [...posts, ...prevState]);
+      }
+    }, 3000);
+  };
 
   const onFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const data = new URLSearchParams();
     data.set('message', value);
-    data.set('author', 'Hulk');
+    data.set('author', 'THE GOAT');
 
-    await fetch(url, {
+    await fetch(baseUrl, {
       method: 'POST',
       body: data,
     });
   };
 
-  console.log(messages);
-
+  const fetchData = async () => {
+    const response = await fetch(baseUrl);
+    if (response.ok) {
+      setMessages((await response.json()).reverse());
+    }
+  };
 
   useEffect(() => {
     fetchData().catch(console.error);
-
+    goOn();
   }, []);
+
+
+  const allMessages = messages.map(message => {
+    return (
+      <MessageCarts message={message.message} datetime={message.datetime} author={message.author} key={message._id}/>
+    )
+  });
+
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
@@ -47,6 +74,9 @@ function App() {
   return (
     <div className="App">
       <Form onFormSubmit={onFormSubmit} onChangeInput={onChange} text={value}/>
+      <div>
+        {allMessages}
+      </div>
     </div>
   );
 }

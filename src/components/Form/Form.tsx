@@ -8,11 +8,11 @@ interface Props {
 
 const Form: React.FC<Props> = ({onChangeInput, text, onFormSubmit}) => {
   return (
-    <form onSubmit={onFormSubmit} className="d-flex justify-content-center flex-column align-items-center">
+    <form onSubmit={onFormSubmit} className="d-flex justify-content-center flex-column align-items-center mb-4">
       <h1>Messenger</h1>
       <div>
         <input type="text" onChange={onChangeInput} value={text}/>
-        <button type="submit" className="btn btn-primary">Add</button>
+        <button type="submit" className="btn btn-primary ms-2">Add</button>
       </div>
     </form>
   );
